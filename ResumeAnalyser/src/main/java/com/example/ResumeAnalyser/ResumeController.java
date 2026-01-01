@@ -43,4 +43,31 @@ public class ResumeController {
 
         
     }
+    public Map<String,Object> atsAnalyse(@RequestParam("file") MultipartFile file,
+                                         @RequestParam("jd") String jobdescription) throws Exception{
+        String resumeText=tika.parseToString(file.getInputStream());
+
+        String prompt= """
+                You are an expert ATS analyzer.compare the resume and job description
+                
+                resume: 
+                %s
+                job description:
+                %s
+                Analyse and Return a structured JSON  with:
+                1."ats-score"(0-100)
+                2."matchKeywords"(list)
+                3."missKeywords"(list)
+                4."summary"(short paragraph)
+                
+                keep response strictly valid json.
+                """.formatted(resumeText);
+        String aiResponse=chatClient.prompt()
+                .user(prompt)
+                .call()
+                .content();
+        return Map.of("Ats-report",aiResponse);
+
+
+    }
 }
